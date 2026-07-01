@@ -32,14 +32,22 @@ class VideoController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'video' => ['required', 'file', 'mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/x-matroska', 'max:102400'], // max 100MB
+            'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'], // Max 2MB
         ]);
 
         $path = $request->file('video')->store('videos', 'local');
+
+        // Handle thumbnail upload
+        $thumbnailPath = null;
+        if ($request->hasFile('thumbnail')) {
+            $thumbnailPath = $request->file('thumbnail')->store('thumbnails', 'public');
+        }
 
         Video::create([
             'title' => $request->title,
             'description' => $request->description,
             'file_path' => $path,
+            'thumbnail' => $thumbnailPath,
         ]);
 
         return redirect()->route('admin.videos.index')->with('success', 'Video successfully uploaded and created!');
@@ -51,6 +59,7 @@ class VideoController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/x-matroska', 'max:102400'], // max 100MB
+            'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ]);
 
         $data = [
@@ -68,6 +77,16 @@ class VideoController extends Controller
             $data['file_path'] = $path;
         }
 
+        // Handle thumbnail update
+        if ($request->hasFile('thumbnail')) {
+            // Delete old thumbnail
+            if ($video->thumbnail && Storage::disk('public')->exists($video->thumbnail)) {
+                Storage::disk('public')->delete($video->thumbnail);
+            }
+            $thumbnailPath = $request->file('thumbnail')->store('thumbnails', 'public');
+            $data['thumbnail'] = $thumbnailPath;
+        }
+
         $video->update($data);
 
         return redirect()->route('admin.videos.index')->with('success', 'Video successfully updated!');
@@ -78,6 +97,11 @@ class VideoController extends Controller
         // Delete video file from private storage
         if (Storage::disk('local')->exists($video->file_path)) {
             Storage::disk('local')->delete($video->file_path);
+        }
+
+        // Delete thumbnail
+        if ($video->thumbnail && Storage::disk('public')->exists($video->thumbnail)) {
+            Storage::disk('public')->delete($video->thumbnail);
         }
 
         $video->delete();

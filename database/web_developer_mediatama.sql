@@ -73,7 +73,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `password_reset_tokens`;
 CREATE TABLE `password_reset_tokens` (
@@ -109,7 +109,7 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `video_accesses`;
 CREATE TABLE `video_accesses` (
@@ -125,18 +125,19 @@ CREATE TABLE `video_accesses` (
   KEY `video_accesses_video_id_foreign` (`video_id`),
   CONSTRAINT `video_accesses_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `video_accesses_video_id_foreign` FOREIGN KEY (`video_id`) REFERENCES `videos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `videos`;
 CREATE TABLE `videos` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
+  `thumbnail` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `file_path` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 
@@ -148,21 +149,22 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (2, '0001_01_01_000001_create_cache_table', 1),
 (3, '0001_01_01_000002_create_jobs_table', 1),
 (4, '2026_06_29_152810_create_videos_table', 1),
-(5, '2026_06_29_152824_create_video_accesses_table', 1);
+(5, '2026_06_29_152824_create_video_accesses_table', 1),
+(6, '2026_07_01_132405_add_thumbnail_to_videos_table', 2);
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('614df8Y1sEpGQLyHHu2yGPD8FhdX0BreUNvODM8K', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiJBd2ZGREJvZWo0TDN3blJ6TFpRWnZSQWxUdUU1cnBabkFsM01JbjU0IiwiX2ZsYXNoIjp7Im5ldyI6W10sIm9sZCI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDBcL2xvZ2luIiwicm91dGUiOiJsb2dpbiJ9fQ==', 1782757544),
-('GlOR46W89QQ3mittMOBJAUtV2kAE3mRoOY1GdyLl', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0', 'eyJfdG9rZW4iOiJaUlpKb1RjTDlzRlBRUTQ5dW5nR1JFc3R3V1JMUXUyVDByWGtHTklGIiwiX2ZsYXNoIjp7Im5ldyI6W10sIm9sZCI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDBcL2xvZ2luIiwicm91dGUiOiJsb2dpbiJ9fQ==', 1782757540);
+('RC3r8LsjKAD4HoJ8cfcbuJcvzZFHV18hO2LwZ546', 5, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0', 'eyJfdG9rZW4iOiJUZDJQbUp0Y3VqVE1HNVA4QjdrZUFCUVh3NVpqTjhZUURMazBZdHN4IiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9jdXN0b21lclwvZGFzaGJvYXJkIiwicm91dGUiOiJjdXN0b21lci5kYXNoYm9hcmQifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6NX0=', 1782913549),
+('V5VwqgMfOkiyBkJBUxDj16zDX3g3LEnL7ZODWLbE', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiJGeDd1VUFkNW5HY2h0SEpjVm9Fb1VxRjdzdDVuSnZpS1VjYkp3aHVlIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9hZG1pblwvZGFzaGJvYXJkIiwicm91dGUiOiJhZG1pbi5kYXNoYm9hcmQifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MX0=', 1782913580),
+('vQT3yT6McB7GXAOIZZCMFCVre4EnahMdZktaVjGI', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiI3TGlGcHJaRHY0ckpCTkRLd1B3OXQyUHJYeHU1OFl4UTA5TWRQb2M4IiwidXJsIjp7ImludGVuZGVkIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDAifSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwIiwicm91dGUiOm51bGx9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19', 1782909322);
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `role`, `remember_token`, `created_at`, `updated_at`) VALUES
 (1, 'Admin Mediatama', 'admin@mediatama.com', NULL, '$2y$12$UQQwGkSvLIniAM3tcXWpAuJkqTlfkW9JCGoDVsmSdp51ydCpt2wc2', 'admin', NULL, '2026-06-29 15:29:01', '2026-06-29 15:29:01'),
 (2, 'Customer Mediatama', 'customer@mediatama.com', NULL, '$2y$12$OpRLC7UtOQHIqgQnItaOQuLWYDKpTpYqpbPQGNNjx87V.I104QjTS', 'customer', NULL, '2026-06-29 15:29:01', '2026-06-29 15:29:01'),
-(4, 'dio', 'dio@gmail.com', NULL, '$2y$12$vXlDpxObBuZAslSLhonh4eCOaQL6HZ1NqdeTSMMKv3QHclYpZ579W', 'customer', NULL, '2026-06-29 18:02:10', '2026-06-29 18:02:10');
+(5, 'dioo', 'dio@gmail.com', NULL, '$2y$12$qzlY3.r8yXVR3VQa.82Io.hnAc2AZluRqEz9p6tSp7WRBZtDDeXTO', 'customer', NULL, '2026-06-30 14:02:08', '2026-06-30 14:02:08');
 INSERT INTO `video_accesses` (`id`, `user_id`, `video_id`, `status`, `valid_until`, `created_at`, `updated_at`) VALUES
-(4, 4, 2, 'rejected', NULL, '2026-06-29 18:08:18', '2026-06-29 18:12:38'),
-(5, 4, 3, 'approved', '2026-06-29 19:16:58', '2026-06-29 18:11:03', '2026-06-29 18:16:58');
-INSERT INTO `videos` (`id`, `title`, `description`, `file_path`, `created_at`, `updated_at`) VALUES
-(2, 'v', 'vv', 'videos/DPaEXplXR7slwDtPQn1I1wdSZllVzIP3IejiwFtY.mp4', '2026-06-29 16:04:51', '2026-06-29 16:04:51'),
-(3, 'er', 'e', 'videos/2MkOeEbENhcqcHh0J8Of7gyUgSCesuQpWOzFqVwz.mp4', '2026-06-29 16:24:11', '2026-06-29 16:24:11');
+(7, 5, 6, 'expired', '2026-07-01 13:45:46', '2026-07-01 13:44:59', '2026-07-01 13:45:46');
+INSERT INTO `videos` (`id`, `title`, `description`, `thumbnail`, `file_path`, `created_at`, `updated_at`) VALUES
+(6, 'Video Pertama', 'Ini adalah video pertama', 'thumbnails/foVRnCNZzlkdJPZogeWf8pmbcFcweez68X52ifZj.png', 'videos/SVzzpzKNfUC2mLIKLBtIH0w31r1TVc1atqtpwV5E.mp4', '2026-07-01 13:39:22', '2026-07-01 13:39:22'),
+(7, 'Video Kedua', 'Deskripsi video kedua', 'thumbnails/ajb8stRQflspvntYF36EhwqrImxchYpAzWMvWQVk.png', 'videos/LE1XwIJZlHOnJ1GbpzW3MuW7JA8wIYTOIECksXaj.mp4', '2026-07-01 13:40:54', '2026-07-01 13:44:53');
 
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

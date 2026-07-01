@@ -29,7 +29,7 @@
                        id="searchInput" 
                        name="search" 
                        value="{{ request('search') }}" 
-                       placeholder="Search..."
+                       placeholder="Search by title, description, or date..."
                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm placeholder:text-slate-400">
             </div>
             <div class="flex gap-2">
@@ -46,7 +46,6 @@
                 </a>
             </div>
         </form>
-        <!-- Result info -->
         <div id="resultInfo" class="mt-3 text-sm text-slate-500">
             @if(request('search'))
                 Showing results for: <span class="font-medium text-slate-700">"{{ request('search') }}"</span>
@@ -83,39 +82,60 @@
                     <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-50 flex items-center justify-center">
                         <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                     </div>
-                    <p class="font-medium text-slate-600">No videos uploaded yet.</p>
-                    <p class="text-sm text-slate-400 mt-1">Click "Upload Video" to start adding files to the library.</p>
+                    <p class="font-medium text-slate-600">
+                        @if(request('search'))
+                            No videos found matching "<span class="text-indigo-600">{{ request('search') }}</span>"
+                        @else
+                            No videos uploaded yet.
+                        @endif
+                    </p>
+                    <p class="text-sm text-slate-400 mt-1">
+                        @if(request('search'))
+                            Try adjusting your search terms
+                        @else
+                            Click "Upload Video" to start adding files to the library.
+                        @endif
+                    </p>
                 </div>
             @else
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
-                            <th class="p-4 pl-6">Title</th>
+                            <th class="p-4 pl-6">Thumbnail</th>
+                            <th class="p-4">Title</th>
                             <th class="p-4">Description</th>
-                            {{-- <th class="p-4">File Name</th> --}}
                             <th class="p-4">Date Uploaded</th>
                             <th class="p-4 pr-6 text-right font-medium">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-50 text-sm">
+                    <tbody class="divide-y divide-slate-50 text-sm" id="videosTableBody">
                         @foreach($videos as $v)
                             <tr class="hover:bg-slate-50/70 transition-colors duration-150">
                                 <td class="p-4 pl-6">
+                                    @if($v->thumbnail)
+                                        <img src="{{ asset('storage/' . $v->thumbnail) }}" 
+                                             alt="{{ $v->title }}" 
+                                             class="w-20 h-14 object-cover rounded-lg border border-slate-200 shadow-sm">
+                                    @else
+                                        <div class="w-20 h-14 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="p-4">
                                     <div class="flex items-center gap-2">
-                                <span class="font-semibold text-slate-800">{{ $v->title }}</span>
+                                        <span class="font-semibold text-slate-800">{{ $v->title }}</span>
                                     </div>
                                 </td>
                                 <td class="p-4 text-slate-500 max-w-xs truncate">
                                     {{ $v->description ?: '-' }}
                                 </td>
-                                {{-- <td class="p-4 text-slate-400 font-mono text-xs max-w-xs truncate">
-                                    {{ basename($v->file_path) }}
-                                </td> --}}
                                 <td class="p-4 text-slate-500 text-sm">
                                     {{ $v->created_at->format('d M Y H:i') }}
                                 </td>
                                 <td class="p-4 pr-6 text-right space-x-2">
-                                    <!-- Watch Stream -->
                                     <a href="{{ route('video.stream', $v->id) }}" target="_blank"
                                         class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-500 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-500 transition-all duration-200">
                                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,8 +145,7 @@
                                         Watch
                                     </a>
 
-                                    <!-- Edit Trigger -->
-                                    <button onclick="openEditVideoModal({{ $v->id }}, '{{ addslashes($v->title) }}', '{{ addslashes($v->description) }}')"
+                                    <button onclick="openEditVideoModal({{ $v->id }}, '{{ addslashes($v->title) }}', '{{ addslashes($v->description) }}', '{{ $v->thumbnail ? asset('storage/' . $v->thumbnail) : '' }}')"
                                         class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-500 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-500 transition-all duration-200 cursor-pointer">
                                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -134,7 +153,6 @@
                                         Edit
                                     </button>
 
-                                    <!-- Delete Trigger -->
                                     <button onclick="openDeleteModal('{{ route('admin.videos.destroy', $v->id) }}', '{{ addslashes($v->title) }}')"
                                         class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-500 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-500 transition-all duration-200 cursor-pointer">
                                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +165,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                <!-- Pagination -->
                 <div class="p-4 border-t border-slate-100">
                     {{ $videos->appends(request()->query())->links() }}
                 </div>
@@ -169,7 +186,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-bold text-slate-800">Upload Video</h3>
-                <p class="text-xs text-slate-500">Upload a video file to the secure local storage.</p>
+                <p class="text-xs text-slate-500">Upload a video file and optional thumbnail to the secure local storage.</p>
             </div>
         </div>
 
@@ -190,6 +207,42 @@
                     placeholder="Optional details..."></textarea>
             </div>
 
+            <!-- Thumbnail Upload dengan Preview -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Thumbnail (Optional)</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-xl bg-slate-50/50 hover:border-indigo-300 hover:bg-slate-50 transition-all cursor-pointer relative">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-slate-600 justify-center">
+                            <label for="upload_thumbnail" class="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
+                                <span>Upload thumbnail image</span>
+                                <input id="upload_thumbnail" name="thumbnail" type="file" class="sr-only" accept="image/*">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-slate-400">PNG, JPG, GIF, WEBP up to 2MB</p>
+                    </div>
+                </div>
+                
+                <!-- Preview Thumbnail -->
+                <div id="upload_thumbnail_preview_container" class="mt-3 hidden">
+                    <p class="text-xs text-slate-500 font-medium mb-1">Thumbnail Preview:</p>
+                    <div class="relative inline-block">
+                        <img id="upload_thumbnail_preview" src="#" alt="Thumbnail preview" class="w-32 h-20 object-cover rounded-lg border-2 border-indigo-200 shadow-sm">
+                        <button type="button" onclick="removeUploadThumbnail()" 
+                            class="absolute -top-2 -right-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full p-1 shadow-md transition-all duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="upload_thumbnail_selected_indicator" class="mt-2 text-xs text-emerald-600 font-semibold hidden text-center"></div>
+            </div>
+
+            <!-- Video File Upload -->
             <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Video File</label>
                 <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-xl bg-slate-50/50 hover:border-indigo-300 hover:bg-slate-50 transition-all cursor-pointer relative">
@@ -237,7 +290,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-bold text-slate-800">Edit Video</h3>
-                <p class="text-xs text-slate-500">Update video details. Uploading a new video will replace the existing file.</p>
+                <p class="text-xs text-slate-500">Update video details. Uploading a new video/thumbnail will replace the existing files.</p>
             </div>
         </div>
 
@@ -259,6 +312,48 @@
                     placeholder="Optional details..."></textarea>
             </div>
 
+            <!-- Edit Thumbnail dengan Preview -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Replace Thumbnail (Optional)</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-xl bg-slate-50/50 hover:border-indigo-300 hover:bg-slate-50 transition-all cursor-pointer relative">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-slate-600 justify-center">
+                            <label for="edit_thumbnail" class="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
+                                <span>Upload replacement thumbnail</span>
+                                <input id="edit_thumbnail" name="thumbnail" type="file" class="sr-only" accept="image/*">
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-400">PNG, JPG, GIF, WEBP up to 2MB</p>
+                    </div>
+                </div>
+                
+                <!-- Preview untuk thumbnail baru yang diupload -->
+                <div id="edit_thumbnail_preview_container" class="mt-3 hidden">
+                    <p class="text-xs text-slate-500 font-medium mb-1">New Thumbnail Preview:</p>
+                    <div class="relative inline-block">
+                        <img id="edit_thumbnail_preview" src="#" alt="New thumbnail preview" class="w-32 h-20 object-cover rounded-lg border-2 border-indigo-200 shadow-sm">
+                        <button type="button" onclick="removeEditThumbnail()" 
+                            class="absolute -top-2 -right-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full p-1 shadow-md transition-all duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Current thumbnail preview -->
+                <div id="current_thumbnail_preview" class="mt-3">
+                    <p class="text-xs text-slate-500 font-medium mb-1">Current Thumbnail:</p>
+                    <img id="current_thumbnail_img" src="" alt="Current thumbnail" class="w-32 h-20 object-cover rounded-lg border border-slate-200 shadow-sm">
+                </div>
+                
+                <div id="edit_thumbnail_selected_indicator" class="mt-2 text-xs text-emerald-600 font-semibold hidden text-center"></div>
+            </div>
+
+            <!-- Edit Video File -->
             <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Replace Video File (Optional)</label>
                 <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-xl bg-slate-50/50 hover:border-indigo-300 hover:bg-slate-50 transition-all cursor-pointer relative">
@@ -305,7 +400,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-800">Delete Video</h3>
             <p class="text-sm text-slate-500 mt-2" id="deleteMessage">Are you sure you want to delete this video?</p>
-            <p class="text-xs text-rose-600/80 mt-1 font-medium">This action cannot be undone. The video file will be permanently removed from storage.</p>
+            <p class="text-xs text-rose-600/80 mt-1 font-medium">This action cannot be undone. The video file and thumbnail will be permanently removed from storage.</p>
             
             <form id="deleteVideoForm" action="" method="POST" class="mt-6 flex items-center justify-center space-x-3">
                 @csrf
@@ -326,7 +421,77 @@
 
 @section('scripts')
 <script>
-    // File upload indicator listener
+    // ===== UPLOAD THUMBNAIL PREVIEW =====
+    document.getElementById('upload_thumbnail').addEventListener('change', function(e) {
+        const fileIndicator = document.getElementById('upload_thumbnail_selected_indicator');
+        const previewContainer = document.getElementById('upload_thumbnail_preview_container');
+        const previewImg = document.getElementById('upload_thumbnail_preview');
+        
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            fileIndicator.textContent = "Selected: " + file.name + " (" + (file.size/1024).toFixed(2) + " KB)";
+            fileIndicator.classList.remove('hidden');
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                previewImg.src = event.target.result;
+                previewContainer.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fileIndicator.classList.add('hidden');
+            previewContainer.classList.add('hidden');
+            previewImg.src = '#';
+        }
+    });
+
+    function removeUploadThumbnail() {
+        document.getElementById('upload_thumbnail').value = '';
+        document.getElementById('upload_thumbnail_selected_indicator').classList.add('hidden');
+        document.getElementById('upload_thumbnail_preview_container').classList.add('hidden');
+        document.getElementById('upload_thumbnail_preview').src = '#';
+    }
+
+    // ===== EDIT THUMBNAIL PREVIEW =====
+    document.getElementById('edit_thumbnail').addEventListener('change', function(e) {
+        const fileIndicator = document.getElementById('edit_thumbnail_selected_indicator');
+        const previewContainer = document.getElementById('edit_thumbnail_preview_container');
+        const previewImg = document.getElementById('edit_thumbnail_preview');
+        const currentPreview = document.getElementById('current_thumbnail_preview');
+        
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            fileIndicator.textContent = "Selected: " + file.name + " (" + (file.size/1024).toFixed(2) + " KB)";
+            fileIndicator.classList.remove('hidden');
+            
+            // Hide current thumbnail
+            currentPreview.style.display = 'none';
+            
+            // Show new preview
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                previewImg.src = event.target.result;
+                previewContainer.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fileIndicator.classList.add('hidden');
+            previewContainer.classList.add('hidden');
+            previewImg.src = '#';
+            currentPreview.style.display = 'block';
+        }
+    });
+
+    function removeEditThumbnail() {
+        document.getElementById('edit_thumbnail').value = '';
+        document.getElementById('edit_thumbnail_selected_indicator').classList.add('hidden');
+        document.getElementById('edit_thumbnail_preview_container').classList.add('hidden');
+        document.getElementById('edit_thumbnail_preview').src = '#';
+        document.getElementById('current_thumbnail_preview').style.display = 'block';
+    }
+
+    // ===== VIDEO FILE INDICATORS =====
     document.getElementById('upload_file').addEventListener('change', function(e) {
         const fileIndicator = document.getElementById('file_selected_indicator');
         if(e.target.files.length > 0) {
@@ -347,11 +512,15 @@
         }
     });
 
-    // Upload Modal functions
+    // ===== MODAL FUNCTIONS =====
     function openUploadModal() {
         const modal = document.getElementById('uploadVideoModal');
         const content = modal.querySelector('.bg-white');
         document.getElementById('file_selected_indicator').classList.add('hidden');
+        document.getElementById('upload_thumbnail_selected_indicator').classList.add('hidden');
+        document.getElementById('upload_thumbnail_preview_container').classList.add('hidden');
+        document.getElementById('upload_thumbnail').value = '';
+        document.getElementById('upload_file').value = '';
         modal.classList.remove('hidden');
         setTimeout(() => {
             modal.classList.remove('opacity-0');
@@ -369,8 +538,7 @@
         }, 300);
     }
 
-    // Edit Modal functions
-    function openEditVideoModal(id, title, description) {
+    function openEditVideoModal(id, title, description, thumbnailUrl) {
         const modal = document.getElementById('editVideoModal');
         const content = modal.querySelector('.bg-white');
         const form = document.getElementById('editVideoForm');
@@ -378,6 +546,20 @@
         document.getElementById('edit_title').value = title;
         document.getElementById('edit_description').value = description;
         document.getElementById('edit_file_selected_indicator').classList.add('hidden');
+        document.getElementById('edit_thumbnail_selected_indicator').classList.add('hidden');
+        document.getElementById('edit_thumbnail_preview_container').classList.add('hidden');
+        document.getElementById('edit_thumbnail').value = '';
+        document.getElementById('edit_file').value = '';
+        
+        // Show current thumbnail preview
+        const currentPreview = document.getElementById('current_thumbnail_preview');
+        const previewImg = document.getElementById('current_thumbnail_img');
+        if (thumbnailUrl) {
+            previewImg.src = thumbnailUrl;
+            currentPreview.style.display = 'block';
+        } else {
+            currentPreview.style.display = 'none';
+        }
         
         form.action = `/admin/videos/${id}`;
         
@@ -398,7 +580,6 @@
         }, 300);
     }
 
-    // DELETE MODAL FUNCTIONS
     function openDeleteModal(actionUrl, videoTitle) {
         const modal = document.getElementById('deleteVideoModal');
         const content = modal.querySelector('.bg-white');
@@ -406,7 +587,6 @@
         const message = document.getElementById('deleteMessage');
         
         form.action = actionUrl;
-        
         if (message) {
             message.textContent = `Are you sure you want to delete "${videoTitle}"?`;
         }
@@ -427,7 +607,8 @@
             modal.classList.add('hidden');
         }, 300);
     }
-    // Search with Enter key
+
+    // ===== SEARCH FUNCTIONS =====
     document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -435,7 +616,6 @@
         }
     });
 
-    // Auto search with debounce (500ms delay)
     let searchTimeout;
     document.getElementById('searchInput').addEventListener('input', function() {
         clearTimeout(searchTimeout);
@@ -444,7 +624,6 @@
         }, 500);
     });
 
-    // Highlight search term in results
     document.addEventListener('DOMContentLoaded', function() {
         const searchTerm = "{{ request('search') }}";
         if (searchTerm) {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['title', 'description', 'file_path'])]
+#[Fillable(['title', 'description', 'thumbnail', 'file_path'])]
 class Video extends Model
 {
     use HasFactory;
